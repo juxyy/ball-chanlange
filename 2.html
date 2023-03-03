@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Keyboard Controlled Ball</title>
+	<style>
+		body {
+			background-color: #f0f0f0;
+		}
+		#ball {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 50px;
+			height: 50px;
+			background-color: black;
+			border-radius: 50%;
+		}
+		.bullet {
+			position: absolute;
+			width: 10px;
+			height: 10px;
+			background-color: blue;
+			border-radius: 50%;
+			transition: top 0.5s linear;
+		}
+
+		.enemy {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            top: 100px;
+            left: 100px;
+        }
+        .contari {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            top: 100px;
+            left: 100px;
+        }
+	</style>
+</head>
+<body>
+
+<div id="ball"></div>
+
+<script>
+	// 获取球元素
+	const ball = document.getElementById('ball');
+    const enemy = document.querySelector('.enemy');
+	// 定义球状态
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+	let xPos = windowWidth*0.5;
+	let yPos = windowHeight*0.5;
+	let enemyWidth = 50;
+	let enemyHeight = 50;
+	let enemySize = 50;
+	let bulletSize = 25;
+	let bulletWidth = 25;
+	let bulletHeight = 25;
+    let enemynum = 5;
+    let enemySpeed = 3;
+	let score = 0;
+    let time = 0;
+    let life = 100;
+	// 定义球速度
+	const speed = 10;
+	const bulletspeed = 35;
+
+
+	// 定义子弹状态
+	let bullets = [];
+	let enemies = [];
+    // 定义球朝向
+    let direction = 'right';
+    //记分牌
+	var scoreboard = document.createElement("div");
+    scoreboard.id = "scoreboard";
+    scoreboard.innerHTML = "Score: 0";
+    scoreboard.style.position = "absolute";
+    scoreboard.style.right = "50%";
+    document.body.appendChild(scoreboard);
+    //时间
+    var timeboard = document.createElement("div");
+    timeboard.id = "timeboard";
+    timeboard.innerHTML = "time: 0";
+    timeboard.style.position = "absolute";
+    timeboard.style.right = "55%";
+    document.body.appendChild(timeboard);
+    //生命
+    var lifeboard = document.createElement("div");
+    lifeboard.id = "lifeboard";
+    lifeboard.innerHTML = "life: 10";
+    lifeboard.style.position = "absolute";
+    lifeboard.style.right = "45%";
+    document.body.appendChild(lifeboard);
+
+function createEnemy() {
+  const enemy = document.createElement('div');
+  enemy.className = 'enemy';
+  enemy.style.left = Math.floor(Math.random() * (window.innerWidth - 50)) + 'px';
+  enemy.style.top = Math.floor(Math.random() * (window.innerHeight - 50)) + 'px';
+  document.body.appendChild(enemy);
+  enemies.push(enemy);
+}
+
+function createbullet()
+{
+	const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            bullet.style.left = xPos +'px';
+            bullet.style.top = yPos + 'px';
+            
+            // 设置子弹朝向
+            bullet.dataset.direction = direction;
+
+            // 添加子弹到页面
+            document.body.appendChild(bullet);
+
+            // 添加子弹到列表
+            bullets.push(bullet);
+}
+// 监听键盘按键事件
+
+document.addEventListener('keydown', function(event) {
+	
+    switch(event.keyCode) {
+        case 37: // 左箭头键
+            xPos -= speed;
+            direction = 'left';
+            break;
+        case 38: // 上箭头键
+            yPos -= speed;
+            direction = 'up';
+            break;
+        case 39: // 右箭头键
+            xPos += speed;
+            direction = 'right';
+            break;
+        case 40: // 下箭头键
+            yPos += speed;
+            direction = 'down';
+            break;
+    }
+
+    // 更新球位置和朝向
+	xPos = (xPos + windowWidth) % windowWidth;
+    yPos = (yPos + windowHeight) % windowHeight;
+    ball.style.left = xPos + 'px';
+    ball.style.top = yPos + 'px';
+    ball.dataset.direction = direction;
+});
+//碰撞函数
+
+function updatePositions() {
+	for(let i = 0; i < bullets.length; i++) {
+        // 获取子弹朝向
+        const bulletDirection = bullets[i].dataset.direction;
+		
+
+        // 更新子弹位置和朝向
+        switch(bulletDirection) {
+            case 'left':
+                bullets[i].style.left = parseInt(bullets[i].style.left) - bulletspeed + 'px';
+                break;
+            case 'up':
+                bullets[i].style.top = parseInt(bullets[i].style.top) - bulletspeed + 'px';
+                break;
+            case 'right':
+                bullets[i].style.left = parseInt(bullets[i].style.left) + bulletspeed + 'px';
+                break;
+            case 'down':
+                bullets[i].style.top = parseInt(bullets[i].style.top) + bulletspeed + 'px';
+                break;
+			default:
+			    bullets[i].remove();
+                bullets.splice(i, 1);
+                i--;
+        }
+
+        // 删除超出屏幕的子弹
+        if(parseInt(bullets[i].style.top) < -50 || parseInt(bullets[i].style.top) > windowHeight || parseInt(bullets[i].style.left) < -10 || parseInt(bullets[i].style.left) > windowWidth) {
+            bullets[i].remove();
+            bullets.splice(i, 1);
+            i--;
+        }
+
+
+		
+    }
+
+    for (let i = 0; i < enemies.length; i++) {
+    const dx = xPos - (parseInt(enemies[i].style.left) + enemyWidth / 2);
+    const dy = yPos - (parseInt(enemies[i].style.top) + enemyHeight / 2);
+    const angle = Math.atan2(dy, dx);
+    const vx = Math.cos(angle) * enemySpeed;
+    const vy = Math.sin(angle) * enemySpeed;
+    enemies[i].style.top = parseInt(enemies[i].style.top) + vy + 'px';
+    enemies[i].style.left = parseInt(enemies[i].style.left) + vx + 'px';
+	// 检查子弹碰撞
+   }
+
+ }
+ function detectCollisions() {
+    for (let i = 0; i < bullets.length; i++) {
+    for (let j = 0; j < enemies.length; j++) {
+    const bulletRect = bullets[i].getBoundingClientRect();
+    const enemyRect = enemies[j].getBoundingClientRect();
+    if (
+    bulletRect.bottom >= enemyRect.top &&
+    bulletRect.top <= enemyRect.bottom &&
+    bulletRect.right >= enemyRect.left &&
+    bulletRect.left <= enemyRect.right
+    ) {
+    // 如果子弹和敌人相撞，则删除子弹和敌人
+    bullets[i].remove();
+    bullets.splice(i, 1);
+    i--;
+    enemies[j].remove();
+    enemies.splice(j, 1);
+    j--;
+	score += 1;
+}
+    }
+    }
+
+
+
+    for (let j = 0; j < enemies.length; j++)
+    {
+        const ballRect = ball.getBoundingClientRect();
+        const enemyRect = enemies[j].getBoundingClientRect();
+        if (
+            ballRect.bottom >= enemyRect.top &&
+            ballRect.top <= enemyRect.bottom &&
+            ballRect.right >= enemyRect.left &&
+            ballRect.left <= enemyRect.right)
+            {
+                life-=1;
+            }
+       
+    }
+
+    }
+// 定时器循环更新子弹位置
+setInterval(function() {
+		updatePositions();
+		detectCollisions();
+		document.getElementById("scoreboard").innerHTML = "Score: " + score;
+        document.getElementById("lifeboard").innerHTML = "life: " + life;
+        if(life <= 0)
+        {
+            alert('Game over');
+            location.reload();
+        }
+        if(enemies.length < parseInt(score/10) + enemynum)
+        createEnemy();
+	
+    
+}, 50);
+
+setInterval(function() {
+		createbullet();
+}, 500);
+
+setInterval(function() {
+    document.getElementById("timeboard").innerHTML = "time: " + time;
+    time+=1;
+}, 1000);
+
+
+</script>
+
+</body>
+</html>
