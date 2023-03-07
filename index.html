@@ -42,12 +42,25 @@
             top: 100px;
             left: 100px;
         }
+        .myImage {
+			width: 20px;
+			height:20px;
+			position: absolute;
+			left: 50%;
+			top: 50%;
+		}
+
 	</style>
 </head>
+
+
+
 <body>
-
 <div id="ball"></div>
-
+<audio id="player" src="music/audio.mp3" style="display:none;"></audio>
+<img id="myImage" src="image/heart.png" style="width: 20px;height:20px;position: absolute;top: 1.25%;right: 97%;">
+<img id="myImage" src="image/time.png" style="width: 20px;height:20px;position: absolute;top: 7.25%;right: 97%;">
+<img id="myImage" src="image/death.png" style="width: 20px;height:20px;position: absolute;top: 4.25%;right: 97%;">
 <script>
 	// 获取球元素
 	const ball = document.getElementById('ball');
@@ -68,10 +81,14 @@
 	let score = 0;
     let time = 0;
     let life = 100;
+
+  // 选择音频元素
+     var audio = document.getElementById('player');
+    
 	// 定义球速度
 	const speed = 10;
 	const bulletspeed = 35;
-
+    
 
 	// 定义子弹状态
 	let bullets = [];
@@ -81,23 +98,26 @@
     //记分牌
 	var scoreboard = document.createElement("div");
     scoreboard.id = "scoreboard";
-    scoreboard.innerHTML = "Score: 0";
+    scoreboard.innerHTML = " 0";
     scoreboard.style.position = "absolute";
-    scoreboard.style.right = "50%";
+    scoreboard.style.right = "95%";
+    scoreboard.style.top = "4.25%";
     document.body.appendChild(scoreboard);
     //时间
     var timeboard = document.createElement("div");
     timeboard.id = "timeboard";
-    timeboard.innerHTML = "time: 0";
+    timeboard.innerHTML = "0";
     timeboard.style.position = "absolute";
-    timeboard.style.right = "55%";
+    timeboard.style.top = "7.25%";
+    timeboard.style.right = "95%";
     document.body.appendChild(timeboard);
     //生命
     var lifeboard = document.createElement("div");
     lifeboard.id = "lifeboard";
-    lifeboard.innerHTML = "life: 10";
+    lifeboard.innerHTML = "100";
     lifeboard.style.position = "absolute";
-    lifeboard.style.right = "45%";
+    lifeboard.style.right = "95%";
+    lifeboard.style.top = "1.25%";
     document.body.appendChild(lifeboard);
 
 function createEnemy() {
@@ -146,6 +166,15 @@ document.addEventListener('keydown', function(event) {
             yPos += speed;
             direction = 'down';
             break;
+        case 32:
+            // 播放音频
+        
+            if (audio.paused) {
+            audio.play();
+            } else {
+            audio.pause();
+             }
+            break;
     }
 
     // 更新球位置和朝向
@@ -184,7 +213,7 @@ function updatePositions() {
         }
 
         // 删除超出屏幕的子弹
-        if(parseInt(bullets[i].style.top) < -50 || parseInt(bullets[i].style.top) > windowHeight || parseInt(bullets[i].style.left) < -10 || parseInt(bullets[i].style.left) > windowWidth) {
+        if(parseInt(bullets[i].style.top) < -250 || parseInt(bullets[i].style.top) > windowHeight+230 || parseInt(bullets[i].style.left) < -10 || parseInt(bullets[i].style.left) > windowWidth) {
             bullets[i].remove();
             bullets.splice(i, 1);
             i--;
@@ -193,7 +222,6 @@ function updatePositions() {
 
 		
     }
-
     for (let i = 0; i < enemies.length; i++) {
     const dx = xPos - (parseInt(enemies[i].style.left) + enemyWidth / 2);
     const dy = yPos - (parseInt(enemies[i].style.top) + enemyHeight / 2);
@@ -251,8 +279,8 @@ function updatePositions() {
 setInterval(function() {
 		updatePositions();
 		detectCollisions();
-		document.getElementById("scoreboard").innerHTML = "Score: " + score;
-        document.getElementById("lifeboard").innerHTML = "life: " + life;
+		document.getElementById("scoreboard").innerHTML = score;
+        document.getElementById("lifeboard").innerHTML =  life;
         if(life <= 0)
         {
             alert('Game over');
@@ -269,7 +297,7 @@ setInterval(function() {
 }, 500);
 
 setInterval(function() {
-    document.getElementById("timeboard").innerHTML = "time: " + time;
+    document.getElementById("timeboard").innerHTML = time;
     time+=1;
 }, 1000);
 
