@@ -49,6 +49,23 @@
 			left: 50%;
 			top: 50%;
 		}
+        button {
+        border: none;
+        background-size: cover;
+        width: 150px;
+        height: 150px;
+        margin: 10px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      button img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
 
 	</style>
 </head>
@@ -57,10 +74,10 @@
 
 <body>
 <div id="ball"></div>
-<audio id="player" src="music/calm chill beautiful.mp3" style="display:none;"></audio>
+<audio id="player" src="music/audio.mp3" style="display:none;"></audio>
 <img id="myImage" src="image/heart.png" style="width: 20px;height:20px;position: absolute;top: 1.25%;right: 97%;">
-<img id="myImage" src="image/time.png" style="width: 20px;height:20px;position: absolute;top: 7.25%;right: 97%;">
-<img id="myImage" src="image/death.png" style="width: 20px;height:20px;position: absolute;top: 4.25%;right: 97%;">
+<img id="myImage1" src="image/time.png" style="width: 20px;height:20px;position: absolute;top: 7.25%;right: 97%;">
+<img id="myImage2" src="image/death.png" style="width: 20px;height:20px;position: absolute;top: 4.25%;right: 97%;">
 <script>
 	// 获取球元素
 	const ball = document.getElementById('ball');
@@ -76,18 +93,20 @@
 	let bulletSize = 25;
 	let bulletWidth = 25;
 	let bulletHeight = 25;
-    let enemynum = 5;
+    let enemynum = 10;
     let enemySpeed = 3;
 	let score = 0;
     let time = 0;
     let life = 100;
-
+    let scoreup = 5;
+    let scoreupnum = 1;
   // 选择音频元素
-     var audio = document.getElementById('player');
+    var audio = document.getElementById('player');
     
 	// 定义球速度
-	const speed = 10;
-	const bulletspeed = 35;
+	let speed = 10;
+	let bulletspeed = 35;
+    let bulletoutspeed = 500;
     
 
 	// 定义子弹状态
@@ -120,11 +139,41 @@
     lifeboard.style.top = "1.25%";
     document.body.appendChild(lifeboard);
 
+
+     // 存储计时器 ID
+    let timerId = setInterval(function() { document.getElementById("timeboard").innerHTML = time;time+=1;}, 1000);
+    let eventid = // 定时器循环更新子弹位置
+        setInterval(function() {
+		updatePositions();
+		detectCollisions();
+        option();
+		document.getElementById("scoreboard").innerHTML = score;
+        document.getElementById("lifeboard").innerHTML =  life;
+        if(life <= 0)
+        {
+            alert('Game over');
+            location.reload();
+        }
+        if(enemies.length < parseInt(score/10) + enemynum)
+        createEnemy();}, 50);
+    let bulletid = setInterval(function() {createbullet();}, 500);
+
 function createEnemy() {
   const enemy = document.createElement('div');
   enemy.className = 'enemy';
-  enemy.style.left = Math.floor(Math.random() * (window.innerWidth - 50)) + 'px';
-  enemy.style.top = Math.floor(Math.random() * (window.innerHeight - 50)) + 'px';
+  var rand1 = Math.random() < 0.5 ? Math.random()*0.1 : (0.9+Math.random()*0.1-0.02);
+  var rand2 = Math.random() < 0.5 ? 0:1;
+  if(rand2 == 0)
+  {
+    enemy.style.left = Math.floor(rand1 * (windowWidth ))  + 'px';
+    enemy.style.top = Math.floor( Math.random() * (windowHeight)) + 'px';
+  }
+  else
+  {
+    enemy.style.left = Math.floor(Math.random()  * (windowWidth ))  + 'px';
+    enemy.style.top = Math.floor( rand1 * (windowHeight)) + 'px';
+  }
+  
   document.body.appendChild(enemy);
   enemies.push(enemy);
 }
@@ -150,7 +199,7 @@ function createbullet()
 document.addEventListener('keydown', function(event) {
 	
     switch(event.keyCode) {
-        case 37: // 左箭头键
+        case 37: // 
             xPos -= speed;
             direction = 'left';
             break;
@@ -222,6 +271,7 @@ function updatePositions() {
 
 		
     }
+
     for (let i = 0; i < enemies.length; i++) {
     const dx = xPos - (parseInt(enemies[i].style.left) + enemyWidth / 2);
     const dy = yPos - (parseInt(enemies[i].style.top) + enemyHeight / 2);
@@ -235,8 +285,9 @@ function updatePositions() {
 
  }
  function detectCollisions() {
-    for (let i = 0; i < bullets.length; i++) {
+    
     for (let j = 0; j < enemies.length; j++) {
+        for (let i = 0; i < bullets.length; i++){
     const bulletRect = bullets[i].getBoundingClientRect();
     const enemyRect = enemies[j].getBoundingClientRect();
     if (
@@ -249,9 +300,11 @@ function updatePositions() {
     bullets[i].remove();
     bullets.splice(i, 1);
     i--;
+    if(i<0) i=0;
     enemies[j].remove();
     enemies.splice(j, 1);
     j--;
+    if(j<0) j = 0;
 	score += 1;
 }
     }
@@ -275,10 +328,97 @@ function updatePositions() {
     }
 
     }
-// 定时器循环更新子弹位置
-setInterval(function() {
+
+function option() {
+  // 更新分数的代码
+  if (score >= scoreup) {
+    //document.body.style.pointerEvents = 'none';
+    //document.body.style.opacity = '0.5';
+    //document.body.style.overflow = "hidden";
+    scoreupnum+=2;
+    scoreup += scoreupnum*5;
+    
+    clearInterval(timerId);
+    clearInterval(eventid);
+    clearInterval(bulletid);
+
+
+   // var existingModal = document.querySelector("div.modal");
+//if (existingModal) {
+  //existingModal.parentNode.removeChild(existingModal);
+//}
+            var modal = document.createElement("div");    
+			modal.style.position = "fixed";
+			modal.style.top = "0";
+			modal.style.left = "0";
+			modal.style.width = "100%";
+			modal.style.height = "100%";
+			//modal.style.backgroundColor = "rgba(0, 0, 0,0.9)";
+			modal.style.display = "flex";
+			modal.style.justifyContent = "center";
+			modal.style.alignItems = "center";
+
+			var options = document.createElement("div");
+          
+			options.style.backgroundColor = "#fff";
+			options.style.padding = "20px";
+			options.style.borderRadius = "20px";
+			options.innerHTML = `
+        <p>Select an option:</p>
+        <button data-option="1" style="background-image: url('image/Bg_01.jpg')"></button>
+        <button data-option="2" style="background-image: url('image/Bg_02.jpg')"></button>
+        <button data-option="3" style="background-image: url('image/Bg_03.jpg')"></button>
+      `;			
+            // 获取所有按钮元素
+const buttons = options.querySelectorAll("button");
+
+// 为每个按钮添加单击事件处理程序
+buttons.forEach(button => {
+  // 创建一个新的图片元素
+  const img = document.createElement("img");
+
+  // 设置图片的src属性为按钮的背景图像
+  img.src = button.style.backgroundImage.slice(4, -1).replace(/"/g, "");
+
+  // 将图片插入到按钮内部
+  button.appendChild(img);
+
+  // 添加单击事件处理程序，以便在按钮被单击时选择该选项
+  //button.addEventListener("click", () => {
+ //   const selectedOption = button.dataset.option;
+  //  console.log(`Option ${selectedOption} selected!`);
+ // });
+});
+            
+            modal.appendChild(options);
+            // Add the modal to the page
+			document.body.appendChild(modal);
+            var optionButtons = options.getElementsByTagName("button");
+			for (var i = 0; i < optionButtons.length; i++) {
+            optionButtons[i].addEventListener("click", resumePage);
+            
+        }
+            
+        }
+}
+function resumePage() {
+            var selectedOption = this.getAttribute("data-option");
+			// Remove the modal
+            
+			var modal = document.querySelector("div:last-child");
+			modal.parentNode.removeChild(modal);
+			// Enable scrolling
+			//document.body.style.overflow = "auto";
+        
+
+        changeattribute(this.getAttribute("data-option"));
+
+        timerId = setInterval(function() { document.getElementById("timeboard").innerHTML = time;time+=1;}, 1000);
+        eventid = // 定时器循环更新子弹位置
+        setInterval(function() {
 		updatePositions();
 		detectCollisions();
+        option();
 		document.getElementById("scoreboard").innerHTML = score;
         document.getElementById("lifeboard").innerHTML =  life;
         if(life <= 0)
@@ -287,19 +427,37 @@ setInterval(function() {
             location.reload();
         }
         if(enemies.length < parseInt(score/10) + enemynum)
-        createEnemy();
-	
-    
-}, 50);
+        createEnemy();}, 50);
+        bulletid = setInterval(function() {createbullet();}, bulletoutspeed);
+        
 
-setInterval(function() {
-		createbullet();
-}, 500);
 
-setInterval(function() {
-    document.getElementById("timeboard").innerHTML = time;
-    time+=1;
-}, 1000);
+
+		}
+function changeattribute(selectedOption)
+{
+    if(selectedOption == 1)
+    {
+        speed+=2;
+    }
+    else
+    if(selectedOption == 2)
+    {
+        bulletspeed+=2;
+    }
+    else
+    {
+        clearInterval(bulletid);
+        bulletoutspeed-=10;
+        if(bulletoutspeed<0) bulletoutspeed = 50;
+        bulletid = setInterval(function() {createbullet();}, bulletoutspeed);
+    }
+}
+
+//setInterval(function() {
+//    document.getElementById("timeboard").innerHTML = time;
+//    time+=1;
+//}, 1000);
 
 
 </script>
